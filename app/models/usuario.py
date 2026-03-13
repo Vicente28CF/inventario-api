@@ -12,3 +12,5 @@ class Usuario(Base):
     rol       = Column(String, default="viewer")  # admin o viewer
     activo    = Column(Boolean, default=True)
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
+    
+    
