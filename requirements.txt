@@ -88,3 +88,4 @@ urllib3==2.0.6
 uvicorn==0.41.0
 Werkzeug==2.3.3
 yagmail==0.15.293
+slowapi==0.1.9
