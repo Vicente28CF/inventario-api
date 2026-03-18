@@ -83,11 +83,15 @@ Retorna una lista paginada de productos con filtros opcionales.
 def listar_productos(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user),
-    categoria_id: Optional[int] = Query(None, description="ID de la categoría a filtrar"),
-    solo_activos: bool = Query(True, description="Incluir solo productos activos"),
-    alerta_stock: bool = Query(False, description="Incluir solo productos con stock bajo"),
+    categoria_id: Optional[int] = Query(
+        None, description="ID de la categoría a filtrar"),
+    solo_activos: bool = Query(
+        True, description="Incluir solo productos activos"),
+    alerta_stock: bool = Query(
+        False, description="Incluir solo productos con stock bajo"),
     page: int = Query(1, ge=1, description="Número de página"),
-    limit: int = Query(10, ge=1, le=100, description="Resultados por página")
+    limit: int = Query(
+        10, ge=1, le=100, description="Resultados por página")
 ):
     query = db.query(Producto)
     if solo_activos:

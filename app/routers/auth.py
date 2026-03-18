@@ -18,7 +18,11 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
     response_model=UsuarioOut,
     status_code=201,
     summary="Registrar nuevo usuario",
-    description="Crea una cuenta nueva. El rol por defecto es **viewer**. Límite: **5 registros por minuto** por IP.",
+    description=(
+    "Crea una cuenta nueva. El rol por defecto es **viewer**. "
+    "Solo un admin puede promover a otro usuario. "
+    "Límite: **5 registros por minuto** por IP."
+),
 )
 @limiter.limit("5/minute")
 def registro(request: Request, datos: UsuarioCreate, db: Session = Depends(get_db)):
@@ -39,10 +43,19 @@ def registro(request: Request, datos: UsuarioCreate, db: Session = Depends(get_d
     "/login",
     response_model=Token,
     summary="Iniciar sesión",
-    description="Retorna un **access token JWT**. Límite: **10 intentos por minuto** por IP para prevenir fuerza bruta.",
+    description=(
+    "Retorna un **access token JWT**. "
+    "Úsalo en el header `Authorization: Bearer <token>` "
+    "para endpoints protegidos. "
+    "Límite: **10 intentos por minuto** por IP para prevenir fuerza bruta."
+),
 )
 @limiter.limit("10/minute")
-def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(
+    request: Request,
+    form: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
     usuario = db.query(Usuario).filter(Usuario.email == form.username).first()
     if not usuario or not verify_password(form.password, usuario.password):
         raise HTTPException(
