@@ -5,6 +5,16 @@ class UsuarioCreate(BaseModel):
     email: EmailStr
     password: str
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "nombre": "Vicente Cayetano",
+                "email": "vicente@email.com",
+                "password": "miclave123"
+            }
+        }
+    }
+
 class UsuarioOut(BaseModel):
     id: int
     nombre: str
@@ -12,8 +22,7 @@ class UsuarioOut(BaseModel):
     rol: str
     activo: bool
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class Token(BaseModel):
     access_token: str
