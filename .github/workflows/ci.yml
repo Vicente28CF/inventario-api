@@ -31,6 +31,7 @@ jobs:
           SECRET_KEY: test_secret_key_ci
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: 30
+          TESTING: true
         run: |
           pytest tests/ -v --tb=short
 

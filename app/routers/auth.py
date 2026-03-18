@@ -6,12 +6,19 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioOut, Token
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import (
+    hash_password, verify_password, create_access_token
+)
 from app.core.deps import get_current_user
+from app.core.config import settings
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(
+    key_func=get_remote_address,
+    enabled=not settings.TESTING
+)
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
+
 
 @router.post(
     "/registro",
@@ -19,16 +26,22 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
     status_code=201,
     summary="Registrar nuevo usuario",
     description=(
-    "Crea una cuenta nueva. El rol por defecto es **viewer**. "
-    "Solo un admin puede promover a otro usuario. "
-    "Límite: **5 registros por minuto** por IP."
-),
+        "Crea una cuenta nueva. El rol por defecto es **viewer**. "
+        "Solo un admin puede promover a otro usuario. "
+        "Límite: **5 registros por minuto** por IP."
+    ),
 )
 @limiter.limit("5/minute")
-def registro(request: Request, datos: UsuarioCreate, db: Session = Depends(get_db)):
+def registro(
+    request: Request,
+    datos: UsuarioCreate,
+    db: Session = Depends(get_db)
+):
     existe = db.query(Usuario).filter(Usuario.email == datos.email).first()
     if existe:
-        raise HTTPException(status_code=400, detail="El email ya está registrado")
+        raise HTTPException(
+            status_code=400, detail="El email ya está registrado"
+        )
     usuario = Usuario(
         nombre=datos.nombre,
         email=datos.email,
@@ -39,16 +52,17 @@ def registro(request: Request, datos: UsuarioCreate, db: Session = Depends(get_d
     db.refresh(usuario)
     return usuario
 
+
 @router.post(
     "/login",
     response_model=Token,
     summary="Iniciar sesión",
     description=(
-    "Retorna un **access token JWT**. "
-    "Úsalo en el header `Authorization: Bearer <token>` "
-    "para endpoints protegidos. "
-    "Límite: **10 intentos por minuto** por IP para prevenir fuerza bruta."
-),
+        "Retorna un **access token JWT**. "
+        "Úsalo en el header `Authorization: Bearer <token>` "
+        "para endpoints protegidos. "
+        "Límite: **10 intentos por minuto** por IP."
+    ),
 )
 @limiter.limit("10/minute")
 def login(
@@ -65,11 +79,15 @@ def login(
     token = create_access_token(data={"sub": usuario.email})
     return {"access_token": token, "token_type": "bearer"}
 
+
 @router.get(
     "/me",
     response_model=UsuarioOut,
     summary="Usuario actual",
-    description="Retorna los datos del usuario autenticado según el token JWT enviado.",
+    description=(
+        "Retorna los datos del usuario autenticado "
+        "según el token JWT enviado."
+    ),
 )
 def me(current_user: Usuario = Depends(get_current_user)):
     return current_user
