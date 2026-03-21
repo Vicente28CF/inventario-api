@@ -103,6 +103,9 @@ cp .env.example .env
 # Levanta PostgreSQL con Docker
 docker-compose up -d
 
+# Aplica migraciones
+alembic upgrade head
+
 # Corre el servidor
 uvicorn app.main:app --reload
 ```
@@ -128,6 +131,19 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ```bash
 pytest tests/ -v
+```
+
+## Migraciones
+
+```bash
+# Crear una nueva migración
+alembic revision -m "descripcion_del_cambio"
+
+# Aplicar migraciones pendientes
+alembic upgrade head
+
+# Ver historial
+alembic history
 ```
 
 ```
