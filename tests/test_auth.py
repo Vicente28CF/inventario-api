@@ -22,6 +22,7 @@ def test_registro_email_duplicado(client):
     })
     assert response.status_code == 400
     assert "ya está registrado" in response.json()["detail"]
+    assert response.json()["error_code"] == "http_error"
 
 def test_login_exitoso(client):
     client.post("/auth/registro", json={
@@ -42,6 +43,7 @@ def test_login_credenciales_incorrectas(client):
         "password": "wrong"
     })
     assert response.status_code == 401
+    assert response.json()["error_code"] == "http_error"
 
 def test_me_autenticado(client, usuario_token):
     response = client.get("/auth/me", headers={
@@ -53,3 +55,4 @@ def test_me_autenticado(client, usuario_token):
 def test_me_sin_token(client):
     response = client.get("/auth/me")
     assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"

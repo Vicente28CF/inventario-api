@@ -1,10 +1,11 @@
-from pydantic import BaseModel
-from typing import Optional
+from decimal import Decimal
+from typing import Annotated, Literal, Optional
 from datetime import datetime
+from pydantic import BaseModel, Field
 
 class CategoriaCreate(BaseModel):
-    nombre: str
-    descripcion: Optional[str] = None
+    nombre: Annotated[str, Field(min_length=2, max_length=80)]
+    descripcion: Optional[Annotated[str, Field(max_length=255)]] = None
 
     model_config = {
         "json_schema_extra": {
@@ -23,11 +24,11 @@ class CategoriaOut(BaseModel):
     model_config = {"from_attributes": True}
 
 class ProductoCreate(BaseModel):
-    nombre: str
-    descripcion: Optional[str] = None
-    precio: float
-    stock: int = 0
-    stock_minimo: int = 5
+    nombre: Annotated[str, Field(min_length=2, max_length=120)]
+    descripcion: Optional[Annotated[str, Field(max_length=255)]] = None
+    precio: Annotated[Decimal, Field(gt=0, max_digits=10, decimal_places=2)]
+    stock: Annotated[int, Field(ge=0)] = 0
+    stock_minimo: Annotated[int, Field(ge=1)] = 5
     categoria_id: Optional[int] = None
 
     model_config = {
@@ -44,10 +45,12 @@ class ProductoCreate(BaseModel):
     }
 
 class ProductoUpdate(BaseModel):
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    precio: Optional[float] = None
-    stock_minimo: Optional[int] = None
+    nombre: Optional[Annotated[str, Field(min_length=2, max_length=120)]] = None
+    descripcion: Optional[Annotated[str, Field(max_length=255)]] = None
+    precio: Optional[
+        Annotated[Decimal, Field(gt=0, max_digits=10, decimal_places=2)]
+    ] = None
+    stock_minimo: Optional[Annotated[int, Field(ge=1)]] = None
     categoria_id: Optional[int] = None
     activo: Optional[bool] = None
 
@@ -64,7 +67,7 @@ class ProductoOut(BaseModel):
     id: int
     nombre: str
     descripcion: Optional[str] = None
-    precio: float
+    precio: Decimal
     stock: int
     stock_minimo: int
     activo: bool
@@ -75,9 +78,9 @@ class ProductoOut(BaseModel):
 
 class MovimientoCreate(BaseModel):
     producto_id: int
-    tipo: str
-    cantidad: int
-    nota: Optional[str] = None
+    tipo: Literal["entrada", "salida"]
+    cantidad: Annotated[int, Field(ge=1)]
+    nota: Optional[Annotated[str, Field(max_length=255)]] = None
 
     model_config = {
         "json_schema_extra": {
@@ -99,3 +102,11 @@ class MovimientoOut(BaseModel):
     creado_en: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AlertaStockOut(BaseModel):
+    id: int
+    nombre: str
+    stock_actual: int
+    stock_minimo: int
+    alerta: str

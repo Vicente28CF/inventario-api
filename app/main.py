@@ -3,6 +3,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from app.core.exception_handlers import register_exception_handlers
 from app.models.usuario import Usuario
 from app.models.producto import Categoria, Producto
 from app.models.movimiento import Movimiento
@@ -56,6 +57,7 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+register_exception_handlers(app)
 
 app.include_router(auth.router)
 app.include_router(productos.router)

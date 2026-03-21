@@ -1,16 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate, UsuarioOut, Token
-from app.core.security import (
-    hash_password, verify_password, create_access_token
-)
 from app.core.deps import get_current_user
 from app.core.config import settings
+from app.services.auth import authenticate_user, build_access_token, register_user
 
 limiter = Limiter(
     key_func=get_remote_address,
@@ -37,20 +36,16 @@ def registro(
     datos: UsuarioCreate,
     db: Session = Depends(get_db)
 ):
-    existe = db.query(Usuario).filter(Usuario.email == datos.email).first()
-    if existe:
-        raise HTTPException(
-            status_code=400, detail="El email ya está registrado"
-        )
-    usuario = Usuario(
-        nombre=datos.nombre,
-        email=datos.email,
-        password=hash_password(datos.password)
-    )
-    db.add(usuario)
-    db.commit()
-    db.refresh(usuario)
-    return usuario
+    try:
+        usuario = register_user(db, datos)
+        db.commit()
+        return usuario
+    except HTTPException:
+        db.rollback()
+        raise
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al registrar usuario")
 
 
 @router.post(
@@ -70,14 +65,8 @@ def login(
     form: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    usuario = db.query(Usuario).filter(Usuario.email == form.username).first()
-    if not usuario or not verify_password(form.password, usuario.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales incorrectas"
-        )
-    token = create_access_token(data={"sub": usuario.email})
-    return {"access_token": token, "token_type": "bearer"}
+    usuario = authenticate_user(db, form.username, form.password)
+    return build_access_token(usuario)
 
 
 @router.get(

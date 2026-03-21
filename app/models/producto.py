@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -19,7 +19,7 @@ class Producto(Base):
     id             = Column(Integer, primary_key=True, index=True)
     nombre         = Column(String, nullable=False, index=True)
     descripcion    = Column(String, nullable=True)
-    precio         = Column(Float, nullable=False)
+    precio         = Column(Numeric(10, 2), nullable=False)
     stock          = Column(Integer, default=0)
     stock_minimo   = Column(Integer, default=5)
     activo         = Column(Boolean, default=True)

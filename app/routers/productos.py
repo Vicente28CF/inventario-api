@@ -9,6 +9,7 @@ from app.schemas.producto import (
 )
 from app.core.deps import get_current_user, require_admin
 from app.models.usuario import Usuario
+from app.services.productos import get_producto_or_404, validate_categoria_id
 
 router = APIRouter(prefix="/productos", tags=["Productos"])
 
@@ -72,6 +73,7 @@ def crear_producto(
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin)
 ):
+    validate_categoria_id(db, datos.categoria_id)
     producto = Producto(**datos.model_dump())
     db.add(producto)
     db.commit()
@@ -108,7 +110,7 @@ def listar_productos(
 ):
     query = db.query(Producto)
     if solo_activos:
-        query = query.filter(Producto.activo == True)
+        query = query.filter(Producto.activo.is_(True))
     if categoria_id:
         query = query.filter(Producto.categoria_id == categoria_id)
     if alerta_stock:
@@ -128,12 +130,7 @@ def obtener_producto(
     db: Session = Depends(get_db),
     _: Usuario = Depends(get_current_user)
 ):
-    producto = db.query(Producto).filter(
-        Producto.id == producto_id
-    ).first()
-    if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return producto
+    return get_producto_or_404(db, producto_id)
 
 
 @router.patch(
@@ -152,11 +149,8 @@ def actualizar_producto(
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin)
 ):
-    producto = db.query(Producto).filter(
-        Producto.id == producto_id
-    ).first()
-    if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    producto = get_producto_or_404(db, producto_id)
+    validate_categoria_id(db, datos.categoria_id)
     for campo, valor in datos.model_dump(exclude_unset=True).items():
         setattr(producto, campo, valor)
     db.commit()
@@ -179,10 +173,6 @@ def eliminar_producto(
     db: Session = Depends(get_db),
     _: Usuario = Depends(require_admin)
 ):
-    producto = db.query(Producto).filter(
-        Producto.id == producto_id
-    ).first()
-    if not producto:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    producto = get_producto_or_404(db, producto_id)
     producto.activo = False
     db.commit()
