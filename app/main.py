@@ -1,15 +1,11 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.database import Base, engine
 
 from app.models.usuario import Usuario
 from app.models.producto import Categoria, Producto
 from app.models.movimiento import Movimiento
-
-Base.metadata.create_all(bind=engine)
 
 from app.routers import auth, productos, inventario
 
