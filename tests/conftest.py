@@ -1,3 +1,9 @@
+import os
+
+os.environ["TESTING"] = "true"
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+os.environ["SECRET_KEY"] = "test_secret_key_local"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
