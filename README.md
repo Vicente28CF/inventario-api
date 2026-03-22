@@ -128,7 +128,7 @@ venv\Scripts\activate        # Windows
 source venv/bin/activate     # Mac/Linux
 
 # Instala dependencias
-pip install -r requirements-dev.txt
+pip install -r requirements.txt
 
 # Configura variables de entorno
 cp .env.example .env
