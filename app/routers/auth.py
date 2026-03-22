@@ -4,17 +4,21 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.deps import get_current_user
 from app.database import get_db
 from app.models.usuario import Usuario
-from app.schemas.usuario import UsuarioCreate, UsuarioOut, Token
-from app.core.deps import get_current_user
-from app.core.config import settings
+from app.schemas.usuario import Token, UsuarioCreate, UsuarioOut
 from app.services.auth import authenticate_user, build_access_token, register_user
 
 limiter = Limiter(
     key_func=get_remote_address,
-    enabled=not settings.TESTING
+    enabled=not settings.TESTING,
 )
+db_dependency = Depends(get_db)
+current_user_dependency = Depends(get_current_user)
+oauth2_form_dependency = Depends()
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
@@ -34,7 +38,7 @@ router = APIRouter(prefix="/auth", tags=["Autenticación"])
 def registro(
     request: Request,
     datos: UsuarioCreate,
-    db: Session = Depends(get_db)
+    db: Session = db_dependency,
 ):
     try:
         usuario = register_user(db, datos)
@@ -43,9 +47,9 @@ def registro(
     except HTTPException:
         db.rollback()
         raise
-    except SQLAlchemyError:
+    except SQLAlchemyError as err:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Error al registrar usuario")
+        raise HTTPException(status_code=500, detail="Error al registrar usuario") from err
 
 
 @router.post(
@@ -62,8 +66,8 @@ def registro(
 @limiter.limit("10/minute")
 def login(
     request: Request,
-    form: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    form: OAuth2PasswordRequestForm = oauth2_form_dependency,
+    db: Session = db_dependency,
 ):
     usuario = authenticate_user(db, form.username, form.password)
     return build_access_token(usuario)
@@ -78,5 +82,5 @@ def login(
         "según el token JWT enviado."
     ),
 )
-def me(current_user: Usuario = Depends(get_current_user)):
+def me(current_user: Usuario = current_user_dependency):
     return current_user

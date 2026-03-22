@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 
+
 class UsuarioCreate(BaseModel):
     nombre: str
     email: EmailStr

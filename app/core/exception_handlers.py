@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.exceptions import RequestValidationError
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ def _build_error_body(request: Request, message, error_code: str) -> dict:
         "detail": message,
         "error_code": error_code,
         "path": request.url.path,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 

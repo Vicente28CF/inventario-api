@@ -1,14 +1,13 @@
 from fastapi import FastAPI
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
+import app.models.movimiento  # noqa: F401
+import app.models.producto  # noqa: F401
+import app.models.usuario  # noqa: F401
 from app.core.exception_handlers import register_exception_handlers
-from app.models.usuario import Usuario
-from app.models.producto import Categoria, Producto
-from app.models.movimiento import Movimiento
-
-from app.routers import auth, productos, inventario
+from app.routers import auth, inventario, productos
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -62,6 +61,7 @@ register_exception_handlers(app)
 app.include_router(auth.router)
 app.include_router(productos.router)
 app.include_router(inventario.router)
+
 
 @app.get("/", tags=["Status"])
 def root():
