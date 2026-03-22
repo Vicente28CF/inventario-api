@@ -5,17 +5,17 @@ Revises:
 Create Date: 2026-03-21 14:05:00
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "20260321_0001"
-down_revision: Union[str, Sequence[str], None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 tipo_movimiento = sa.Enum("entrada", "salida", name="tipomovimiento")
@@ -27,7 +27,12 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("nombre", sa.String(), nullable=False),
         sa.Column("descripcion", sa.String(), nullable=True),
-        sa.Column("creado_en", sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+        sa.Column(
+            "creado_en",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=True,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("nombre"),
     )
@@ -41,7 +46,12 @@ def upgrade() -> None:
         sa.Column("password", sa.String(), nullable=False),
         sa.Column("rol", sa.String(), nullable=True),
         sa.Column("activo", sa.Boolean(), nullable=True),
-        sa.Column("creado_en", sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+        sa.Column(
+            "creado_en",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=True,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
     )
@@ -57,7 +67,12 @@ def upgrade() -> None:
         sa.Column("stock", sa.Integer(), nullable=True),
         sa.Column("stock_minimo", sa.Integer(), nullable=True),
         sa.Column("activo", sa.Boolean(), nullable=True),
-        sa.Column("creado_en", sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+        sa.Column(
+            "creado_en",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=True,
+        ),
         sa.Column("actualizado_en", sa.DateTime(timezone=True), nullable=True),
         sa.Column("categoria_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(["categoria_id"], ["categorias.id"]),
@@ -73,7 +88,12 @@ def upgrade() -> None:
         sa.Column("tipo", tipo_movimiento, nullable=False),
         sa.Column("cantidad", sa.Integer(), nullable=False),
         sa.Column("nota", sa.String(), nullable=True),
-        sa.Column("creado_en", sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+        sa.Column(
+            "creado_en",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("CURRENT_TIMESTAMP"),
+            nullable=True,
+        ),
         sa.Column("producto_id", sa.Integer(), nullable=False),
         sa.Column("usuario_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(["producto_id"], ["productos.id"]),

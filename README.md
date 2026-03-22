@@ -1,6 +1,6 @@
 # Inventario API
 
-API REST para gestión de inventario empresarial, construida con FastAPI y PostgreSQL. Incluye autenticación JWT, control de roles, movimientos de stock y alertas automáticas.
+API REST para gestión de inventario empresarial construida con FastAPI y PostgreSQL. Cubre autenticación JWT, autorización por roles, gestión de productos con reglas de negocio validadas, movimientos de stock y pruebas automatizadas.
 
 🌐 **Demo en vivo:** [https://inventario-api-skyp.onrender.com/docs](https://inventario-api-skyp.onrender.com/docs)
 
@@ -33,12 +33,46 @@ API REST para gestión de inventario empresarial, construida con FastAPI y Postg
 
 ---
 
+## Qué demuestra este proyecto
+
+- Diseño de API backend con capas separadas: `routers`, `services`, `schemas`, `models`.
+- Autenticación con JWT y autorización por rol (`admin`, `viewer`).
+- Validaciones de negocio: stock insuficiente, soft delete, productos inactivos, categorías inexistentes.
+- Persistencia versionada con Alembic.
+- Testing con Pytest sobre flujos felices y casos de borde.
+- Calidad automatizada en CI con tests y lint.
+
+---
+
+## Arquitectura
+
+```
+app/
+├── core/        # configuración, seguridad, dependencias, handlers
+├── models/      # modelos SQLAlchemy
+├── routers/     # endpoints HTTP
+├── schemas/     # contratos de entrada/salida
+├── services/    # reglas de negocio
+├── database.py  # engine, session y Base
+└── main.py      # app FastAPI y registro de routers
+```
+
+### Decisiones técnicas
+
+- `services/` concentra la lógica de negocio para evitar routers inflados.
+- `Numeric(10,2)` y `Decimal` se usan para dinero en lugar de `float`.
+- Los errores HTTP y de validación responden con un formato consistente.
+- Los productos usan soft delete para conservar trazabilidad.
+- Los movimientos validan cantidad positiva y bloquean stock negativo.
+
+---
+
 ## Funcionalidades
 
 **Autenticación**
 
 - Registro y login de usuarios
-- Tokens JWT con access token
+- Tokens JWT con access token y rate limiting
 - Roles: `admin` y `viewer`
 - Endpoints protegidos por rol
 
@@ -90,8 +124,8 @@ cd inventario-api
 
 # Crea el entorno virtual
 python -m venv venv
-venv\Scripts\activate  # Windows
-source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
 
 # Instala dependencias
 pip install -r requirements.txt
@@ -110,19 +144,20 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
+> En Windows también puedes usar `start.bat` para los últimos tres pasos.
+
 API disponible en `http://localhost:8000/docs`
 
 ---
 
 ## Variables de entorno
 
-Crea un archivo `.env` con:
-
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/inventario_db
 SECRET_KEY=tu_secret_key_aqui
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+TESTING=false
 ```
 
 ---
@@ -130,20 +165,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ## Tests
 
 ```bash
-pytest tests/ -v
-```
-
-## Migraciones
-
-```bash
-# Crear una nueva migración
-alembic revision -m "descripcion_del_cambio"
-
-# Aplicar migraciones pendientes
-alembic upgrade head
-
-# Ver historial
-alembic history
+pytest
+pytest --cov=app
 ```
 
 ```
@@ -161,8 +184,28 @@ tests/test_productos.py::test_crear_categoria_como_admin PASSED
 tests/test_productos.py::test_movimiento_entrada PASSED
 tests/test_productos.py::test_movimiento_salida_stock_insuficiente PASSED
 
-13 passed in 13.94s
+19 passed
 ```
+
+---
+
+## Migraciones
+
+```bash
+# Aplicar migraciones pendientes
+alembic upgrade head
+
+# Crear nueva migración
+alembic revision -m "descripcion_del_cambio"
+
+# Ver historial
+alembic history
+```
+
+Migraciones relevantes:
+
+- esquema inicial
+- cambio de `precio` de `Float` a `Numeric(10,2)`
 
 ---
 
@@ -170,8 +213,8 @@ tests/test_productos.py::test_movimiento_salida_stock_insuficiente PASSED
 
 Cada push activa automáticamente GitHub Actions:
 
-- **test** — corre los 13 tests con SQLite en memoria
-- **lint** — verifica calidad del código con flake8
+- **test** — corre los 19 tests con SQLite en memoria
+- **lint** — verifica calidad del código con `ruff`
 
 Los merges a `main` y `develop` requieren que todos los checks pasen.
 
@@ -197,6 +240,7 @@ inventario-api/
 │   ├── schemas/
 │   │   ├── usuario.py
 │   │   └── producto.py
+│   ├── services/           ← reglas de negocio
 │   ├── database.py
 │   └── main.py
 ├── tests/
@@ -208,8 +252,19 @@ inventario-api/
 │       └── ci.yml
 ├── docker-compose.yml
 ├── Dockerfile
+├── pyproject.toml
 └── requirements.txt
 ```
+
+---
+
+## Mejoras futuras
+
+- Refresh tokens
+- Búsqueda por nombre y ordenamiento
+- Auditoría detallada de cambios
+- Cobertura de tests con métricas
+- Observabilidad con logging estructurado
 
 ---
 

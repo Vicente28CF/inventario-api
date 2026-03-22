@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 import os
 
 os.environ["TESTING"] = "true"
@@ -8,6 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from app.database import Base, get_db
 from app.main import app
 
@@ -54,8 +56,8 @@ def usuario_token(client):
 
 @pytest.fixture(scope="function")
 def admin_token(client):
-    from app.models.usuario import Usuario
     from app.core.security import hash_password
+    from app.models.usuario import Usuario
     db = TestingSessionLocal()
     admin = Usuario(
         nombre="Admin",
