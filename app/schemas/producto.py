@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
+
 class CategoriaCreate(BaseModel):
     nombre: Annotated[str, Field(min_length=2, max_length=80)]
     descripcion: Annotated[str, Field(max_length=255)] | None = None
@@ -12,10 +13,11 @@ class CategoriaCreate(BaseModel):
         "json_schema_extra": {
             "example": {
                 "nombre": "Electrónicos",
-                "descripcion": "Computadoras, tablets y accesorios"
+                "descripcion": "Computadoras, tablets y accesorios",
             }
         }
     }
+
 
 class CategoriaOut(BaseModel):
     id: int
@@ -23,6 +25,7 @@ class CategoriaOut(BaseModel):
     descripcion: str | None = None
 
     model_config = {"from_attributes": True}
+
 
 class ProductoCreate(BaseModel):
     nombre: Annotated[str, Field(min_length=2, max_length=120)]
@@ -37,13 +40,14 @@ class ProductoCreate(BaseModel):
             "example": {
                 "nombre": "Laptop Dell XPS 15",
                 "descripcion": "Laptop profesional con pantalla OLED",
-                "precio": 25000.00,
+                "precio": 25000.00,  # noqa: ERA001
                 "stock": 10,
                 "stock_minimo": 3,
-                "categoria_id": 1
+                "categoria_id": 1,
             }
         }
     }
+
 
 class ProductoUpdate(BaseModel):
     nombre: Annotated[str, Field(min_length=2, max_length=120)] | None = None
@@ -56,11 +60,12 @@ class ProductoUpdate(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
-                "precio": 22000.00,
-                "stock_minimo": 5
+                "precio": 22000.00,  # noqa: ERA001
+                "stock_minimo": 5,
             }
         }
     }
+
 
 class ProductoOut(BaseModel):
     id: int
@@ -75,6 +80,7 @@ class ProductoOut(BaseModel):
 
     model_config = {"from_attributes": True}
 
+
 class MovimientoCreate(BaseModel):
     producto_id: int
     tipo: Literal["entrada", "salida"]
@@ -87,10 +93,11 @@ class MovimientoCreate(BaseModel):
                 "producto_id": 1,
                 "tipo": "entrada",
                 "cantidad": 20,
-                "nota": "Reabastecimiento mensual"
+                "nota": "Reabastecimiento mensual",
             }
         }
     }
+
 
 class MovimientoOut(BaseModel):
     id: int

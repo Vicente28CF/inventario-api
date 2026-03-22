@@ -1,4 +1,5 @@
-import enum
+from enum import StrEnum
+
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -6,7 +7,7 @@ from sqlalchemy.sql import func
 from app.database import Base
 
 
-class TipoMovimiento(str, enum.Enum):
+class TipoMovimiento(StrEnum):
     entrada = "entrada"
     salida = "salida"
 

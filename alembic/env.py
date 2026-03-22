@@ -1,11 +1,11 @@
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 import app.models.movimiento  # noqa: F401
 import app.models.producto  # noqa: F401
 import app.models.usuario  # noqa: F401
+from alembic import context
 from app.core.config import settings
 from app.database import Base
 
